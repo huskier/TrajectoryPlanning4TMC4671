@@ -1,7 +1,7 @@
 ### Generic settings ###
 VERSION			= 3.06
 #DEVICE			= Startrampe
-#DEVICE			= Landungsbruecke
+DEVICE			= Landungsbruecke
 LINK			= BL
 #LINK			= NOBL
 OUTDIR 			= _build_$(DEVICE)
@@ -15,33 +15,33 @@ SRC 			+= boards/TMCDriver.c
 SRC 			+= boards/TMCMotionController.c
 
 SRC 			+= boards/Rhino_standalone.c
-SRC				+= boards/TMC2041_eval.c
-SRC				+= boards/TMC2100_eval.c
-SRC				+= boards/TMC2130_eval.c
-SRC				+= boards/TMC2160_eval.c
-SRC				+= boards/TMC2208_eval.c
-SRC				+= boards/TMC2209_eval.c
-SRC				+= boards/TMC2224_eval.c
-SRC				+= boards/TMC2660_eval.c
-SRC				+= boards/TMC262_1420_eval.c
-SRC				+= boards/TMC4330_eval.c
-SRC				+= boards/TMC4331_eval.c
-SRC				+= boards/TMC4361_eval.c
-SRC				+= boards/TMC4361A_eval.c
-SRC				+= boards/TMC4670_eval.c
-SRC				+= boards/TMC4671_eval.c
-SRC				+= boards/TMC5031_eval.c
-SRC				+= boards/TMC5041_eval.c
-SRC				+= boards/TMC5062_eval.c
-SRC				+= boards/TMC5072_eval.c
-SRC 			+= boards/TMC5130_eval.c
-SRC 			+= boards/TMC5160_eval.c
-SRC 			+= boards/TMC5161_eval.c
-SRC 			+= boards/TMC6200_eval.c
-SRC				+= boards/TMC8461_eval.c
-SRC				+= boards/TMC8462_eval.c
-SRC				+= boards/TMC8690_eval.c
-SRC				+= boards/TMCC160_eval.c
+#SRC				+= boards/TMC2041_eval.c
+#SRC				+= boards/TMC2100_eval.c
+#SRC				+= boards/TMC2130_eval.c
+#SRC				+= boards/TMC2160_eval.c
+#SRC				+= boards/TMC2208_eval.c
+#SRC				+= boards/TMC2209_eval.c
+#SRC				+= boards/TMC2224_eval.c
+#SRC				+= boards/TMC2660_eval.c
+#SRC				+= boards/TMC262_1420_eval.c
+#SRC				+= boards/TMC4330_eval.c
+#SRC				+= boards/TMC4331_eval.c
+#SRC				+= boards/TMC4361_eval.c
+#SRC				+= boards/TMC4361A_eval.c
+#SRC				+= boards/TMC4670_eval.c
+#SRC				+= boards/TMC4671_eval.c
+#SRC				+= boards/TMC5031_eval.c
+#SRC				+= boards/TMC5041_eval.c
+#SRC				+= boards/TMC5062_eval.c
+#SRC				+= boards/TMC5072_eval.c
+#SRC 			+= boards/TMC5130_eval.c
+#SRC 			+= boards/TMC5160_eval.c
+#SRC 			+= boards/TMC5161_eval.c
+#SRC 			+= boards/TMC6200_eval.c
+#SRC				+= boards/TMC8461_eval.c
+#SRC				+= boards/TMC8462_eval.c
+#SRC				+= boards/TMC8690_eval.c
+#SRC				+= boards/TMCC160_eval.c
 
 # System and hardware abstraction layer
 SRC 			+= hal/$(DEVICE)/tmc/SysTick.c
@@ -72,31 +72,31 @@ SRC				+= TMC-API/tmc/helpers/CRC.c
 SRC				+= TMC-API/tmc/ramp/LinearRamp.c
 SRC				+= TMC-API/tmc/ramp/LinearRamp1.c
 SRC				+= TMC-API/tmc/ramp/Ramp.c
-SRC 			+= TMC-API/tmc/ic/TMC2041/TMC2041.c
-SRC 			+= TMC-API/tmc/ic/TMC2130/TMC2130.c
-SRC 			+= TMC-API/tmc/ic/TMC2160/TMC2160.c
-SRC 			+= TMC-API/tmc/ic/TMC2208/TMC2208.c
-SRC 			+= TMC-API/tmc/ic/TMC2209/TMC2209.c
-SRC 			+= TMC-API/tmc/ic/TMC2224/TMC2224.c
-SRC 			+= TMC-API/tmc/ic/TMC2660/TMC2660.c
-SRC 			+= TMC-API/tmc/ic/TMC262_1420/TMC262_1420.c
-SRC				+= TMC-API/tmc/ic/TMC4330/TMC4330.c
-SRC				+= TMC-API/tmc/ic/TMC4331/TMC4331.c
-SRC				+= TMC-API/tmc/ic/TMC4361/TMC4361.c
-SRC				+= TMC-API/tmc/ic/TMC4361A/TMC4361A.c
-SRC				+= TMC-API/tmc/ic/TMC4670/TMC4670.c
+#SRC 			+= TMC-API/tmc/ic/TMC2041/TMC2041.c
+#SRC 			+= TMC-API/tmc/ic/TMC2130/TMC2130.c
+#SRC 			+= TMC-API/tmc/ic/TMC2160/TMC2160.c
+#SRC 			+= TMC-API/tmc/ic/TMC2208/TMC2208.c
+#SRC 			+= TMC-API/tmc/ic/TMC2209/TMC2209.c
+#SRC 			+= TMC-API/tmc/ic/TMC2224/TMC2224.c
+#SRC 			+= TMC-API/tmc/ic/TMC2660/TMC2660.c
+#SRC 			+= TMC-API/tmc/ic/TMC262_1420/TMC262_1420.c
+#SRC				+= TMC-API/tmc/ic/TMC4330/TMC4330.c
+#SRC				+= TMC-API/tmc/ic/TMC4331/TMC4331.c
+#SRC				+= TMC-API/tmc/ic/TMC4361/TMC4361.c
+#SRC				+= TMC-API/tmc/ic/TMC4361A/TMC4361A.c
+#SRC				+= TMC-API/tmc/ic/TMC4670/TMC4670.c
 SRC				+= TMC-API/tmc/ic/TMC4671/TMC4671.c
-SRC				+= TMC-API/tmc/ic/TMC5031/TMC5031.c
-SRC				+= TMC-API/tmc/ic/TMC5041/TMC5041.c
-SRC				+= TMC-API/tmc/ic/TMC5062/TMC5062.c
-SRC				+= TMC-API/tmc/ic/TMC5072/TMC5072.c
-SRC 			+= TMC-API/tmc/ic/TMC5130/TMC5130.c
-SRC 			+= TMC-API/tmc/ic/TMC5160/TMC5160.c
-SRC 			+= TMC-API/tmc/ic/TMC5161/TMC5161.c
-SRC				+= TMC-API/tmc/ic/TMC6200/TMC6200.c
-SRC				+= TMC-API/tmc/ic/TMC8461/TMC8461.c
-SRC				+= TMC-API/tmc/ic/TMC8462/TMC8462.c
-SRC				+= TMC-API/tmc/ic/TMCC160/TMCC160.c
+#SRC				+= TMC-API/tmc/ic/TMC5031/TMC5031.c
+#SRC				+= TMC-API/tmc/ic/TMC5041/TMC5041.c
+#SRC				+= TMC-API/tmc/ic/TMC5062/TMC5062.c
+#SRC				+= TMC-API/tmc/ic/TMC5072/TMC5072.c
+#SRC 			+= TMC-API/tmc/ic/TMC5130/TMC5130.c
+#SRC 			+= TMC-API/tmc/ic/TMC5160/TMC5160.c
+#SRC 			+= TMC-API/tmc/ic/TMC5161/TMC5161.c
+#SRC				+= TMC-API/tmc/ic/TMC6200/TMC6200.c
+#SRC				+= TMC-API/tmc/ic/TMC8461/TMC8461.c
+#SRC				+= TMC-API/tmc/ic/TMC8462/TMC8462.c
+#SRC				+= TMC-API/tmc/ic/TMCC160/TMCC160.c
 
 EXTRAINCDIRS 	+= hal/$(DEVICE)
 
@@ -692,7 +692,7 @@ $(shell mkdir $(OUTDIR) 2>NUL)
 
 # Include the dependency files.
 ##-include $(shell mkdir $(OUTDIR)/dep 2>/dev/null) $(wildcard $(OUTDIR)/dep/*)
--include $(shell mkdir $(OUTDIR)\dep 2>NUL) $(wildcard $(OUTDIR)/dep/*)
+-include $(shell mkdir $(OUTDIR)/dep 2>NUL) $(wildcard $(OUTDIR)/dep/*)
 
 # Listing of phony targets.
 .PHONY : all begin end size gccversion \

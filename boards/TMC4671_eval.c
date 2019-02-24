@@ -1306,6 +1306,11 @@ static uint32 getMeasuredSpeed(uint8 motor, int32 *value)
 	return TMC_ERROR_NONE;
 }
 
+static void TMC4671_periodicJob(uint32 actualSystick)
+{
+	periodicJob(actualSystick);
+}
+
 static void periodicJob(uint32 actualSystick)
 {
 	int motor;

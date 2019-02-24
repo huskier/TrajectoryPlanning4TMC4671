@@ -432,6 +432,68 @@ void tmcl_init()
 	numberOfInterfaces   = 3;
 }
 
+//void txTest(RXTXTypeDef *RXTX, uint8 ch)
+void txTest(uint8 ch)
+{
+	uint8 reply[2];
+
+	reply[0] = ch;
+	//reply[1] = ch;
+
+	//RXTX->txN(reply, 2);
+	(&interfaces[1])->txN(reply, 1);
+}
+
+void dispInt(int value)
+{
+		uint8 dispByte;
+		uint8 digchar;
+
+		txTest('0');
+		txTest('x');
+
+		dispByte = (0xFF000000 & value) >> 24;
+		digchar = (dispByte & 0xF0) >> 4;
+		txTest(digchar+48);
+		digchar = dispByte & 0x0F;
+		txTest(digchar+48);
+
+		dispByte = (0xFF0000 & value) >> 16;
+		digchar = (dispByte & 0xF0) >> 4;
+		txTest(digchar+48);
+		digchar = dispByte & 0x0F;
+		txTest(digchar+48);
+
+
+		dispByte = (0xFF00 & value) >> 8;
+		digchar = (dispByte & 0xF0) >> 4;
+		txTest(digchar+48);
+		digchar = dispByte & 0x0F;
+		txTest(digchar+48);
+
+
+		dispByte = 0xFF & value;
+		digchar = (dispByte & 0xF0) >> 4;
+		txTest(digchar+48);
+		digchar = dispByte & 0x0F;
+		txTest(digchar+48);
+
+		txTest(10);
+		txTest(13);
+}
+
+void dispString(char *pstr)
+{
+	int len;
+	len = strlen(pstr);
+	for(int i=0; i<len; i++)
+	{
+		txTest(pstr[i]);
+	}
+	txTest(10);
+	txTest(13);
+}
+
 void tmcl_process()
 {
 	static int currentInterface = 0;
