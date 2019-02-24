@@ -1809,17 +1809,11 @@ void openLoopRun(uint8_t motor)
 
 	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0x00000000);
 
-	// set limits
-	//tmc4671_writeInt(motor, TMC4671_PIDOUT_UQ_UD_LIMITS, 0x00005A81);  // 23767
-	//tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 0x00000BB8);
-	//tmc4671_writeInt(motor, TMC4671_PID_ACCELERATION_LIMIT, 0x000186A0);
-	//tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_LIMIT, 0x00002710);
-	//tmc4671_writeInt(motor, TMC4671_PID_POSITION_LIMIT_LOW, 0x80000001);
-	//tmc4671_writeInt(motor, TMC4671_PID_POSITION_LIMIT_HIGH, 0x7FFFFFFF);
-
 }
 
 /*
+//Close loop testing......
+
 int main(void)
 {
 	// Start all initialization routines
@@ -1917,6 +1911,8 @@ int main(void)
 
 	openLoopRun(0);
 
+/*
+    //The following values of registers can be monitored through USB2RTMI module and TMCL-IDE......
 	int value = tmc4671_readInt(0, TMC4671_MODE_RAMP_MODE_MOTION);
 	dispString("Motion mode is : ");
 	dispInt(value);
@@ -1936,42 +1932,14 @@ int main(void)
 	value = tmc4671_readInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET);
 	dispString("open vel is : ");
 	dispInt(value);
-
-
-	//printf("Hello World");
-
-	//updateCnt = 0;
+*/
 
 	// Main loop
 	while(1)
 	{
-		// Check all parameters and life signs and mark errors
-		//vitalsignsmonitor_checkVitalSigns();
-
-		//txTest(49);
-
-		// Perodic jobs of Motion controller/Driver boards
-		//Evalboards.ch1.periodicJob(systick_getTick());
-		//Evalboards.ch2.periodicJob(systick_getTick());
-		//periodicJob_InMain(systick_getTick());
-
-		/*
-		updateCnt++;
-
-		if(rampGenerator[0].rampPosition == rampGenerator[0].targetPosition)
-		{
-			if(updateCnt >= 100)
-			{
-				dispString("Finish one moveBy(...), and do another one...");
-				ticks = 20000;
-				moveBy(0,&ticks);
-				updateCnt = 0;
-			}
-		}*/
 
 		wait(1000);
 		//dispString("MOVing...");
-
 		int actPos = tmc4671_readInt(0, TMC4671_PID_POSITION_ACTUAL);
 		dispString("actPos is : ");
 		dispInt(actPos);
