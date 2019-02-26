@@ -1721,7 +1721,7 @@ void configureMotor(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_TARGET_DDT_LIMITS, 0x00007FFF); 	// P parameter for the position regulator.
 }
 
-/*
+
 void encoderInit(uint8_t motor)
 {
 	dispString("do Encoder initialization (Mode 0)...");
@@ -1730,7 +1730,7 @@ void encoderInit(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0);	 	// set ABN_DECODER_PHI_E_OFFSET to zero
 	tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, 1);					// select phi_e_ext
 	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0);							// set the "zero" angle
-	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 1500);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
+	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 6000);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
 
 	uint32 reply;
@@ -1751,13 +1751,15 @@ void encoderInit(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000002);
 	tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_TARGET, 10);
 
+
 	dispString("and search the N-Channel to clear the actual position...");
 	// and search the N-Channel to clear the actual position
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M, 0);
-	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_MODE, 0);
+	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_MODE, 0x00001000);
 
 	tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_TARGET, 20); // test
 
+/*
 	dispString("clear DECODER_COUNT_N and check...");
 	// clear DECODER_COUNT_N and check
 	do
@@ -1777,6 +1779,7 @@ void encoderInit(uint8_t motor)
 	} while (reply == 0);
 
 	tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_TARGET, 40); // test
+*/
 
 	dispString("drive to zero position using position mode...");
 	// drive to zero position using position mode
@@ -1785,7 +1788,7 @@ void encoderInit(uint8_t motor)
 
 	dispString("In the end of the initEncoder......");
 }
-*/
+
 
 void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 {
@@ -1825,12 +1828,10 @@ void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
 
-
 	// set the "zero" angle
 	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15, 0);
 
-	// set internal encoder value to zero
-	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
+	wait(1000);
 
 	/*
 	do
@@ -1841,7 +1842,10 @@ void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 	} while (reply != 0);
 	*/
 
-	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);
+	//tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);
+
+	// set internal encoder value to zero
+	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
 
 	// switch back to last used UQ_UD_EXT setting
 	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, last_UQ_UD_EXT);
@@ -1907,12 +1911,12 @@ int main(void)
 
 	//encoderInit(0);
 
-	tmc4671_EncoderInitializationMode0(0, 1500);
+	tmc4671_EncoderInitializationMode0(0, 6000);
 	wait(5000);
 
-	tmc4671_switchToMotionMode(0, 3);
+	//tmc4671_switchToMotionMode(0, 3);
 
-	int ticks = -65535*2;
+	int ticks = 65535*20;
 	moveBy(0,&ticks);
 
 	updateCnt = 0;
