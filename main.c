@@ -1721,6 +1721,7 @@ void configureMotor(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_TARGET_DDT_LIMITS, 0x00007FFF); 	// P parameter for the position regulator.
 }
 
+/*
 void encoderInit(uint8_t motor)
 {
 	dispString("do Encoder initialization (Mode 0)...");
@@ -1784,6 +1785,7 @@ void encoderInit(uint8_t motor)
 
 	dispString("In the end of the initEncoder......");
 }
+*/
 
 void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 {
