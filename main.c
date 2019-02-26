@@ -1419,7 +1419,7 @@ static void periodicJob_InMain(uint32 actualSystick)
 				rampGenerator[motor].lastdXRest = 0;
 			}
 
-			updateCnt++;
+			//updateCnt++;
 
 			//if( updateCnt == 500)
 			if(rampGenerator[motor].rampPosition != rampGenerator[motor].targetPosition)
@@ -1428,7 +1428,7 @@ static void periodicJob_InMain(uint32 actualSystick)
 				{
 					dispString("MOVING...");
 					dispInt(rampGenerator[motor].rampPosition);
-					updateCnt = 0;
+					//updateCnt = 0;
 
 					int actPos = tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL);
 					dispString("actPos is : ");
@@ -1576,8 +1576,8 @@ void TMC4671_init(void)
 	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_dsADC_MCLK_B, 0x0);
 
 	// set default acceleration and max velocity
-	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_ACCELERATION_LIMIT, 3000);
-    tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_VELOCITY_LIMIT, 5000);
+	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_ACCELERATION_LIMIT, 800);
+    tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_VELOCITY_LIMIT, 800);
 
 	//txTest(87);
 
@@ -1680,6 +1680,8 @@ void configureMotor(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_PWM_MAXCNT, 0x00000F9F);
 	tmc4671_writeInt(motor, TMC4671_PWM_BBM_H_BBM_L, 0x00000505);
 
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15, 3);
+
 	// ADC configuration
 	tmc4671_writeInt(motor, TMC4671_dsADC_MCFG_B_MCFG_A, 0x00100010);
 	tmc4671_writeInt(motor, TMC4671_dsADC_MCLK_A, 0x20000000);
@@ -1706,8 +1708,8 @@ void configureMotor(uint8_t motor)
 	// set limits
 	tmc4671_writeInt(motor, TMC4671_PIDOUT_UQ_UD_LIMITS, 0x00005A81);  // 23767
 	tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, 0x00000BB8);
-	tmc4671_writeInt(motor, TMC4671_PID_ACCELERATION_LIMIT, 0x000186A0);
-	tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_LIMIT, 0x00002710);
+	//tmc4671_writeInt(motor, TMC4671_PID_ACCELERATION_LIMIT, 0x000186A0);
+	//tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_LIMIT, 0x00002710);
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_LIMIT_LOW, 0x80000001);
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_LIMIT_HIGH, 0x7FFFFFFF);
 
@@ -1727,7 +1729,7 @@ void encoderInit(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0);	 	// set ABN_DECODER_PHI_E_OFFSET to zero
 	tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, 1);					// select phi_e_ext
 	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0);							// set the "zero" angle
-	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 6000);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
+	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 1500);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
 
 	uint32 reply;
@@ -1783,6 +1785,78 @@ void encoderInit(uint8_t motor)
 	dispString("In the end of the initEncoder......");
 }
 
+void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
+{
+	static uint16 last_Phi_E_Selection = 0;
+	static uint32 last_UQ_UD_EXT = 0;
+	static s16 last_PHI_E_EXT = 0;
+
+	/*
+	tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);	 	// use UQ_UD_EXT for motion
+	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0);	 	// set ABN_DECODER_PHI_E_OFFSET to zero
+	tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, 1);					// select phi_e_ext
+	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0);							// set the "zero" angle
+	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 1500);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
+	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
+	*/
+
+	uint32 reply;
+
+	dispString("In tmc4671_EncoderInitializationMode0 fuction...");
+
+	tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);	 	// use UQ_UD_EXT for motion
+
+	// save actual set values for PHI_E_SELECTION, UQ_UD_EXT, and PHI_E_EXT
+	last_Phi_E_Selection = (u16) tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15);
+	last_UQ_UD_EXT = (u32) tmc4671_readInt(motor, TMC4671_UQ_UD_EXT);
+	last_PHI_E_EXT = (s16) tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15);
+
+	// set ABN_DECODER_PHI_E_OFFSET to zero
+	tmc4671_writeRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, BIT_16_TO_31, 0);
+
+	// select phi_e_ext
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15, 1);
+
+	// set an initialization voltage on UD_EXT (to the flux, not the torque!)
+	tmc4671_writeRegister16BitValue(motor, TMC4671_UQ_UD_EXT, BIT_16_TO_31, 0);
+	tmc4671_writeRegister16BitValue(motor, TMC4671_UQ_UD_EXT, BIT_0_TO_15, startVoltage);
+
+	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
+
+
+	// set the "zero" angle
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15, 0);
+
+	// set internal encoder value to zero
+	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
+
+	/*
+	do
+	{
+		// set internal encoder value to zero
+		tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
+		reply = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
+	} while (reply != 0);
+	*/
+
+	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);
+
+	// switch back to last used UQ_UD_EXT setting
+	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, last_UQ_UD_EXT);
+
+	// set PHI_E_EXT back to last value
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15, last_PHI_E_EXT);
+
+	// switch back to last used PHI_E_SELECTION setting
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15, last_Phi_E_Selection);
+
+
+	// switch to velocity mode
+	//tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000002);
+	//tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_TARGET, 100);
+}
+
+
 void openLoopRun(uint8_t motor)
 {
 	// Type of motor &  PWM configuration
@@ -1811,15 +1885,12 @@ void openLoopRun(uint8_t motor)
 
 }
 
-/*
-//Close loop testing......
 
+//Close loop testing......
 int main(void)
 {
 	// Start all initialization routines
 	init();
-
-	//txTest(85);
 
 	dispString("Before init......");
 	TMC4671_init();
@@ -1832,14 +1903,14 @@ int main(void)
 	//tmc4671_doEncoderInitializationMode0(0, &motorConfig[0].initState, motorConfig[0].initWaitTime, &motorConfig[0].actualInitWaitTime, motorConfig[0].startVoltage);
 	//wait(5000);
 
-	encoderInit(0);
+	//encoderInit(0);
+
+	tmc4671_EncoderInitializationMode0(0, 1500);
 	wait(5000);
 
+	tmc4671_switchToMotionMode(0, 3);
 
-
-	//tmc4671_startEncoderInitialization(0, &motorConfig[0].initMode, motorConfig[0].initState);
-
-	int ticks = 20000;
+	int ticks = -65535*2;
 	moveBy(0,&ticks);
 
 	updateCnt = 0;
@@ -1855,7 +1926,7 @@ int main(void)
 
 	//printf("Hello World");
 
-	//updateCnt = 0;
+	updateCnt = 0;
 
 	// Main loop
 	while(1)
@@ -1871,20 +1942,24 @@ int main(void)
 		periodicJob_InMain(systick_getTick());
 
 
-		updateCnt++;
+//		updateCnt++;
 
-		if(rampGenerator[0].rampPosition == rampGenerator[0].targetPosition)
-		{
-			if(updateCnt >= 100)
-			{
-				dispString("Finish one moveBy(...), and do another one...");
-				ticks = 20000;
-				moveBy(0,&ticks);
-				updateCnt = 0;
-			}
-		}
+//		if(rampGenerator[0].rampPosition == rampGenerator[0].targetPosition)
+//		{
+//			if(updateCnt >= 100)
+//			{
+//				dispString("Finish one moveBy(...), and do another one...");
+//				ticks = 20000;
+//				moveBy(0,&ticks);
+//				updateCnt = 0;
+//			}
+//		}
 
-		//wait(500);
+		//wait(10);
+
+		int actPos = tmc4671_readInt(0, TMC4671_PID_POSITION_ACTUAL);
+		dispString("actPos is : ");
+		dispInt(actPos);
 
 		// Process TMCL communication
 		tmcl_process();
@@ -1892,10 +1967,10 @@ int main(void)
 
 	return 0;
 }
-*/
 
 
-/* open loop test...... */
+/*
+ //open loop test......
 int main(void)
 {
 	// Start all initialization routines
@@ -1911,7 +1986,7 @@ int main(void)
 
 	openLoopRun(0);
 
-/*
+
     //The following values of registers can be monitored through USB2RTMI module and TMCL-IDE......
 	int value = tmc4671_readInt(0, TMC4671_MODE_RAMP_MODE_MOTION);
 	dispString("Motion mode is : ");
@@ -1932,7 +2007,7 @@ int main(void)
 	value = tmc4671_readInt(0, TMC4671_OPENLOOP_VELOCITY_TARGET);
 	dispString("open vel is : ");
 	dispInt(value);
-*/
+
 
 	// Main loop
 	while(1)
@@ -1950,4 +2025,4 @@ int main(void)
 
 	return 0;
 }
-
+*/
