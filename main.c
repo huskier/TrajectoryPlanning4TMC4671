@@ -145,40 +145,23 @@ static uint32 moveBy(uint8 motor, int32 *ticks)
 	if(motor >= TMC4671_MOTORS)
 		return TMC_ERROR_MOTOR;
 
-//#ifdef USE_LINEAR_RAMP
 	// update velocity ramp before switching from torque to position mode
 	if (actualMotionMode[motor] == TMC4671_MOTION_MODE_TORQUE)
 		rampGenerator[motor].rampVelocity = tmc4671_getActualVelocity(motor);
 
-	//txTest(65);
 	// switch to position motion mode
 	actualMotionMode[motor] = TMC4671_MOTION_MODE_POSITION;
 	tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_POSITION);
 
-	//txTest(66);
-
 	// set target position for ramp generator
 	int actPos = tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL);
-	//rampGenerator[motor].targetPosition = (s32) tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL) + *ticks;
-
 	rampGenerator[motor].targetPosition = (s32) actPos + *ticks;
 
 
 	dispString("actPos is : ");
 	dispInt(actPos);
-	//rampGenerator[motor].targetPosition = (s32) actPos + *ticks;
 	dispString("targetPos is : ");
 	dispInt(rampGenerator[motor].targetPosition);
-
-
-
-	//txTest(67);
-
-//#else
-//	tmc4671_setRelativeTargetPosition(motor, *ticks);
-//#endif
-
-	//txTest(68);
 
 	return TMC_ERROR_NONE;
 }
@@ -1371,14 +1354,6 @@ static void periodicJob_InMain(uint32 actualSystick)
 {
 	int motor;
 
-	// do encoder initialization if necessary
-	for(motor = 0; motor < TMC4671_MOTORS; motor++)
-	{
-		tmc4671_periodicJob(motor, actualSystick, motorConfig[motor].initMode,
-				&(motorConfig[motor].initState), motorConfig[motor].initWaitTime,
-				&(motorConfig[motor].actualInitWaitTime), motorConfig[motor].startVoltage);
-	}
-
 	// 1ms velocity ramp handling
 	static u32 lastSystick;
 	if (lastSystick != actualSystick)
@@ -1526,49 +1501,7 @@ void TMC4671_init(void)
 	TMC4671_SPIChannel = &HAL.SPI->ch1;
 	TMC4671_SPIChannel->CSN = &HAL.IOs->pins->SPI1_CSN;
 
-	TMC4671_config = Evalboards.ch1.config;
-
-/*
-	// connect evalboard functions
-	Evalboards.ch1.config->reset        = reset;
-	Evalboards.ch1.config->restore      = restore;
-	Evalboards.ch1.config->state        = CONFIG_RESET;//CONFIG_READY;
-	Evalboards.ch1.config->configIndex  = 0;
-	Evalboards.ch1.rotate               = rotate;
-	Evalboards.ch1.right                = right;
-	Evalboards.ch1.left                 = left;
-	Evalboards.ch1.stop                 = stop;
-	Evalboards.ch1.getMeasuredSpeed     = getMeasuredSpeed;
-	Evalboards.ch1.GAP                  = GAP;
-	Evalboards.ch1.SAP                  = SAP;
-	Evalboards.ch1.moveTo               = moveTo;
-	Evalboards.ch1.moveBy               = moveBy;
-	Evalboards.ch1.writeRegister        = writeRegister;
-	Evalboards.ch1.readRegister         = readRegister;
-	Evalboards.ch1.periodicJob          = periodicJob;
-	Evalboards.ch1.userFunction         = userFunction;
-	Evalboards.ch1.enableDriver         = enableDriver;
-	Evalboards.ch1.checkErrors          = checkErrors;
-	Evalboards.ch1.numberOfMotors       = TMC4671_MOTORS;
-	Evalboards.ch1.deInit               = deInit;
-	Evalboards.ch1.VMMin                = 140;
-	Evalboards.ch1.VMMax                = 650;
-*/
-
-	// init motor config
-
 	int motor;
-	for(motor = 0; motor < TMC4671_MOTORS; motor++)
-	{
-		motorConfig[motor].initWaitTime             = 1000;
-		motorConfig[motor].startVoltage             = 6000;
-		motorConfig[motor].initMode                 = 0;
-		//motorConfig[motor].initState                = 1;
-		motorConfig[motor].torqueMeasurementFactor  = 256;
-	}
-
-
-	//txTest(86);
 
 	// set default polarity for evaluation board's power stage on init
 	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PWM_POLARITIES, 0x0);
@@ -1579,9 +1512,6 @@ void TMC4671_init(void)
 	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_ACCELERATION_LIMIT, 800);
     tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_VELOCITY_LIMIT, 800);
 
-	//txTest(87);
-
-//#ifdef USE_LINEAR_RAMP
 	// init ramp generator
 	for (motor = 0; motor < TMC4671_MOTORS; motor++)
 	{
@@ -1592,7 +1522,6 @@ void TMC4671_init(void)
 		rampGenerator[motor].maxVelocity = (u32) tmc4671_readInt(motor, TMC4671_PID_VELOCITY_LIMIT);
 		rampGenerator[motor].acceleration = (u32) tmc4671_readInt(motor, TMC4671_PID_ACCELERATION_LIMIT);
 	}
-//#endif
 
 	// enable the driver
 	enableDriver(DRIVER_ENABLE);
@@ -1640,35 +1569,6 @@ static void init()
 	HAL.init();                  // Initialize Hardware Abstraction Layer
 	IDDetection_init();          // Initialize board detection
 	tmcl_init();                 // Initialize TMCL communication
-
-	tmcdriver_init();            // Initialize dummy driver board --> preset EvalBoards.ch2
-	tmcmotioncontroller_init();  // Initialize dummy motion controller board  --> preset EvalBoards.ch1
-
-
-	VitalSignsMonitor.busy = 1;  // Put state to busy
-	Evalboards.driverEnable = DRIVER_ENABLE;
-	Evalboards.ch1.id = 0;       // preset id for driver board to 0 --> error/not found
-	Evalboards.ch2.id = 0;       // preset id for driver board to 0 --> error/not found
-
-	// We disable the drivers before configurating anything
-	HAL.IOs->config->toOutput(&HAL.IOs->pins->DIO0);
-	HAL.IOs->config->setHigh(&HAL.IOs->pins->DIO0);
-
-	/*
-	IdAssignmentTypeDef ids;
-	IDDetection_initialScan(&ids);  // start initial board detection
-	IDDetection_initialScan(&ids);  // start second time, first time not 100% reliable, not sure why - too fast after startup?
-	if(!ids.ch1.id && !ids.ch2.id)
-	{
-		shallForceBoot();           // only checking to force jump into bootloader if there are no boards attached
-		// todo CHECK 2: Workaround: shallForceBoot() changes pin settings - change them again here, since otherwise IDDetection partially breaks (LH)
-		HAL.IOs->config->toOutput(&HAL.IOs->pins->ID_CLK);
-		HAL.IOs->config->toInput(&HAL.IOs->pins->ID_CH0);
-    }
-	Board_assign(&ids);             // assign boards with detected id
-	*/
-
-	VitalSignsMonitor.busy 	= 0;    // not busy any more!
 }
 
 void configureMotor(uint8_t motor)
@@ -1695,7 +1595,7 @@ void configureMotor(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_ADC_I1_I0_EXT, 0x00000000);
 
 	//Encoder configuration
-	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_MODE, 0x00001000); // Control bits how to handle ABN decoder signals.
+	//tmc4671_writeInt(motor, TMC4671_ABN_DECODER_MODE, 0x00001000); // Control bits how to handle ABN decoder signals.
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PPR, 0x00000FA0);
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0x00000EDD);
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT_N, 0x00000484);
@@ -1720,7 +1620,6 @@ void configureMotor(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_PID_POSITION_P_POSITION_I, 0x00020001); 	// P parameter for the position regulator.
 	tmc4671_writeInt(motor, TMC4671_PID_TORQUE_FLUX_TARGET_DDT_LIMITS, 0x00007FFF); 	// P parameter for the position regulator.
 }
-
 
 void encoderInit(uint8_t motor)
 {
@@ -1796,18 +1695,11 @@ void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 	static uint32 last_UQ_UD_EXT = 0;
 	static s16 last_PHI_E_EXT = 0;
 
-	/*
-	tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);	 	// use UQ_UD_EXT for motion
-	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, 0);	 	// set ABN_DECODER_PHI_E_OFFSET to zero
-	tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, 1);					// select phi_e_ext
-	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0);							// set the "zero" angle
-	tmc4671_writeInt(motor, TMC4671_UQ_UD_EXT, 1500);		// set an initialization voltage on UD_EXT (to the flux, not the torque!)
-	tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);				// critical: needed to set ABN_DECODER_COUNT to zero
-	*/
-
 	uint32 reply;
 
 	dispString("In tmc4671_EncoderInitializationMode0 fuction...");
+
+	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_MODE, 0x00001000); // Control bits how to handle ABN decoder signals.
 
 	tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000008);	 	// use UQ_UD_EXT for motion
 
@@ -1833,17 +1725,6 @@ void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 
 	wait(1000);
 
-	/*
-	do
-	{
-		// set internal encoder value to zero
-		tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
-		reply = tmc4671_readInt(motor, TMC4671_ABN_DECODER_COUNT);
-	} while (reply != 0);
-	*/
-
-	//tmc4671_writeInt(motor, TMC4671_PID_POSITION_ACTUAL, 0);
-
 	// set internal encoder value to zero
 	tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
 
@@ -1855,11 +1736,6 @@ void tmc4671_EncoderInitializationMode0(u8 motor, u16 startVoltage)
 
 	// switch back to last used PHI_E_SELECTION setting
 	tmc4671_writeRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15, last_Phi_E_Selection);
-
-
-	// switch to velocity mode
-	//tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, 0x00000002);
-	//tmc4671_writeInt(motor, TMC4671_PID_VELOCITY_TARGET, 100);
 }
 
 
@@ -1879,7 +1755,6 @@ void openLoopRun(uint8_t motor)
 	//tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x0000000A);
 	tmc4671_writeInt(motor, TMC4671_OPENLOOP_VELOCITY_TARGET, -10);
 
-
 	// set default acceleration and max velocity
 	tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_ACCELERATION_LIMIT, 2000);
     tmc4671_writeInt(DEFAULT_MOTOR, TMC4671_PID_VELOCITY_LIMIT, 4000);
@@ -1888,9 +1763,7 @@ void openLoopRun(uint8_t motor)
 	tmc4671_writeInt(motor, TMC4671_OPENLOOP_MODE, 0x00000000);
 
 	tmc4671_writeInt(motor, TMC4671_PHI_E_EXT, 0x00000000);
-
 }
-
 
 //Close loop testing......
 int main(void)
@@ -1901,67 +1774,22 @@ int main(void)
 	dispString("Before init......");
 	TMC4671_init();
 	dispString("After init......");
-
 	readChipInfo();
 
 	configureMotor(0);
 
-	//tmc4671_doEncoderInitializationMode0(0, &motorConfig[0].initState, motorConfig[0].initWaitTime, &motorConfig[0].actualInitWaitTime, motorConfig[0].startVoltage);
-	//wait(5000);
-
-	//encoderInit(0);
-
 	tmc4671_EncoderInitializationMode0(0, 6000);
-	wait(5000);
-
-	//tmc4671_switchToMotionMode(0, 3);
+	//wait(5000);
 
 	int ticks = 65535*20;
 	moveBy(0,&ticks);
 
 	updateCnt = 0;
-
-	if(rampGenerator[0].rampEnabled)
-	{
-		dispString("ramp Enabled...");
-	}
-	else
-	{
-		rampGenerator[0].rampEnabled = true;
-	}
-
-	//printf("Hello World");
-
-	updateCnt = 0;
-
 	// Main loop
 	while(1)
 	{
-		// Check all parameters and life signs and mark errors
-		//vitalsignsmonitor_checkVitalSigns();
 
-		//txTest(49);
-
-		// Perodic jobs of Motion controller/Driver boards
-		//Evalboards.ch1.periodicJob(systick_getTick());
-		//Evalboards.ch2.periodicJob(systick_getTick());
 		periodicJob_InMain(systick_getTick());
-
-
-//		updateCnt++;
-
-//		if(rampGenerator[0].rampPosition == rampGenerator[0].targetPosition)
-//		{
-//			if(updateCnt >= 100)
-//			{
-//				dispString("Finish one moveBy(...), and do another one...");
-//				ticks = 20000;
-//				moveBy(0,&ticks);
-//				updateCnt = 0;
-//			}
-//		}
-
-		//wait(10);
 
 		int actPos = tmc4671_readInt(0, TMC4671_PID_POSITION_ACTUAL);
 		dispString("actPos is : ");
